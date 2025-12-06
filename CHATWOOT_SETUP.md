@@ -1,0 +1,159 @@
+# 🔧 Guia de Configuração do Chatwoot
+
+## Visão Geral
+
+O Chatwoot já está configurado no `docker-compose.yml` e será iniciado automaticamente junto com os outros serviços.
+
+## Configuração Inicial
+
+### 1. Iniciar os Serviços
+
+```bash
+docker-compose up -d
+```
+
+O Chatwoot estará disponível em: **http://localhost:3001**
+
+### 2. Primeira Inicialização
+
+Na primeira vez que o Chatwoot iniciar, você precisa executar o setup:
+
+```bash
+# Aguardar o Chatwoot estar pronto (pode levar 1-2 minutos)
+docker-compose logs -f chatwoot
+
+# Quando estiver pronto, executar o setup
+docker-compose exec chatwoot bundle exec rails db:chatwoot_prepare
+```
+
+Ou use o script automatizado:
+
+```bash
+bash docker/init-chatwoot.sh
+```
+
+### 3. Criar Conta de Administrador
+
+1. Acesse http://localhost:3001
+2. Clique em "Sign Up" ou "Create Account"
+3. Preencha os dados do primeiro administrador
+4. Faça login
+
+### 4. Criar uma Inbox
+
+1. No Chatwoot, vá em **Settings > Inboxes**
+2. Clique em **Add Inbox**
+3. Escolha o tipo de inbox (ex: API)
+4. Configure conforme necessário
+5. Anote o **Inbox ID** (você precisará dele)
+
+### 5. Gerar API Token
+
+1. No Chatwoot, vá em **Settings > Applications**
+2. Clique em **New Application**
+3. Preencha:
+   - **Name**: WhatsApp Platform API
+   - **Description**: API para integração com a plataforma
+4. Clique em **Create**
+5. **Copie o API Token** gerado (você só verá uma vez!)
+
+### 6. Obter Account ID
+
+1. No Chatwoot, vá em **Settings > Account**
+2. O **Account ID** está visível na URL ou no topo da página
+3. Geralmente é `1` para a primeira conta
+
+### 7. Configurar no Backend
+
+Edite o arquivo `backend/.env`:
+
+```env
+CHATWOOT_API_BASE_URL=http://chatwoot:3000
+CHATWOOT_API_TOKEN=seu-token-aqui
+CHATWOOT_ACCOUNT_ID=1
+```
+
+**Importante**: 
+- Use `http://chatwoot:3000` (nome do serviço) para comunicação entre containers
+- O backend já está configurado para usar essa URL por padrão
+
+### 8. Reiniciar o Backend
+
+```bash
+docker-compose restart backend
+```
+
+## Verificação
+
+Para verificar se a integração está funcionando:
+
+```bash
+# Ver logs do backend
+docker-compose logs -f backend
+
+# Testar endpoint de conversas
+curl -H "Authorization: Bearer SEU_TOKEN" http://localhost:4000/api/conversations
+```
+
+## Estrutura de Dados
+
+O Chatwoot usa o mesmo PostgreSQL, mas com um banco separado:
+- **WhatsApp Platform**: `whatsapp_platform`
+- **Chatwoot**: `chatwoot_production`
+
+## Troubleshooting
+
+### Chatwoot não inicia
+
+```bash
+# Ver logs
+docker-compose logs chatwoot
+
+# Verificar se o banco foi criado
+docker-compose exec postgres psql -U postgres -l
+```
+
+### Erro de conexão com banco
+
+```bash
+# Verificar se o banco chatwoot_production existe
+docker-compose exec postgres psql -U postgres -c "\l"
+
+# Se não existir, criar manualmente
+docker-compose exec postgres psql -U postgres -c "CREATE DATABASE chatwoot_production;"
+```
+
+### Erro 401 ao chamar API
+
+- Verifique se o `CHATWOOT_API_TOKEN` está correto
+- Verifique se o token não expirou
+- Gere um novo token se necessário
+
+### Backend não consegue conectar ao Chatwoot
+
+- Verifique se o Chatwoot está rodando: `docker-compose ps`
+- Verifique se a URL está correta: `http://chatwoot:3000` (não `localhost`)
+- Verifique os logs: `docker-compose logs backend`
+
+## Variáveis de Ambiente do Chatwoot
+
+As principais variáveis já estão configuradas no `docker-compose.yml`:
+
+- `POSTGRES_HOST`: postgres
+- `POSTGRES_DATABASE`: chatwoot_production
+- `POSTGRES_USERNAME`: postgres
+- `POSTGRES_PASSWORD`: postgres
+- `REDIS_URL`: redis://redis:6379
+- `RAILS_ENV`: production
+- `FRONTEND_URL`: http://localhost:3001
+
+## Próximos Passos
+
+Após configurar o Chatwoot:
+
+1. ✅ Criar inbox
+2. ✅ Obter API Token
+3. ✅ Configurar no backend/.env
+4. ✅ Testar integração
+5. ⏭️ Configurar integração com WhatsApp (Meta API)
+
