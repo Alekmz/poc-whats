@@ -1,0 +1,8 @@
+# Arquivos e diretórios a serem ignorados no build do Docker
+.git
+.gitignore
+*.md
+README.md
+.env
+.env.*
+!.env.example
