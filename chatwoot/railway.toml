@@ -3,7 +3,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "sh -c \"echo 'Aguardando setup do banco...' && sleep 10 && echo 'Executando setup do Chatwoot...' && bundle exec rails db:chatwoot_prepare 2>&1 || echo 'Setup pode ter falhado, mas continuando...' && echo 'Iniciando servidor Chatwoot...' && bundle exec rails s -p 3000 -b 0.0.0.0\""
+# O entrypoint.sh será usado automaticamente pelo Dockerfile
+# Não é necessário definir startCommand aqui se o ENTRYPOINT estiver no Dockerfile
 healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"

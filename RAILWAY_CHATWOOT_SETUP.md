@@ -39,6 +39,8 @@ Ou via Railway CLI:
 railway run --service postgres psql $DATABASE_URL -c "CREATE DATABASE chatwoot_production;"
 ```
 
+**⚠️ Nota sobre extensão `pgvector`**: O Chatwoot tenta criar a extensão `vector` durante o setup. Se o PostgreSQL do Railway não tiver essa extensão, o setup continuará mesmo assim (o Dockerfile foi configurado para tratar esse erro). Funcionalidades de busca vetorial/IA podem não estar disponíveis, mas o Chatwoot funcionará normalmente.
+
 ### 4. Configurar Variáveis de Ambiente
 
 No serviço Chatwoot, adicione:
@@ -115,6 +117,11 @@ curl -H "api_access_token: SEU_TOKEN" \
 - Verifique se o banco `chatwoot_production` existe
 - Verifique se todas as variáveis estão configuradas
 - Verifique os logs do serviço
+
+### Erro: extensão "vector" não disponível
+**Sintoma**: Logs mostram `ERROR: extension "vector" is not available`
+
+**Solução**: Isso é esperado se o PostgreSQL do Railway não tiver `pgvector`. O Dockerfile foi configurado para continuar mesmo sem a extensão. O Chatwoot funcionará normalmente, mas funcionalidades de busca vetorial/IA podem não estar disponíveis. Verifique os logs para confirmar que o servidor iniciou após o erro.
 
 ### Erro de conexão com banco
 - Verifique se as variáveis do PostgreSQL estão corretas

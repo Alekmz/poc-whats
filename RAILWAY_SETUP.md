@@ -203,6 +203,8 @@ Antes de iniciar o Chatwoot, você precisa criar o banco de dados `chatwoot_prod
 
 **Alternativa**: O Chatwoot tentará criar o banco automaticamente na primeira inicialização, mas é recomendado criar manualmente.
 
+**⚠️ Nota sobre extensão `pgvector`**: O Chatwoot tenta criar a extensão `vector` (pgvector) durante o setup. Se o PostgreSQL do Railway não tiver essa extensão instalada, o setup pode falhar. O Dockerfile foi configurado para continuar mesmo se a extensão não estiver disponível, mas funcionalidades de busca vetorial/IA podem não funcionar. Para funcionalidades completas, considere usar um PostgreSQL com pgvector ou instalar a extensão manualmente.
+
 ### 4.4 Configurar Variáveis de Ambiente do Chatwoot
 
 No serviço do Chatwoot, adicione as seguintes variáveis de ambiente:
@@ -435,6 +437,24 @@ Para configurar:
    ```bash
    railway run --service chatwoot bundle exec rails db:chatwoot_prepare
    ```
+
+### Erro: extensão "vector" não disponível
+
+**Sintoma**: Logs mostram `ERROR: extension "vector" is not available` ou `PG::FeatureNotSupported`
+
+**Causa**: O PostgreSQL do Railway não tem a extensão `pgvector` instalada. O Chatwoot tenta criar essa extensão durante o setup.
+
+**Soluções**:
+
+1. **Solução Recomendada**: O Dockerfile foi atualizado para tratar esse erro e continuar mesmo sem a extensão. O Chatwoot funcionará, mas funcionalidades de busca vetorial/IA podem não estar disponíveis.
+
+2. **Solução Alternativa**: Se você precisar da extensão `pgvector`:
+   - Use um PostgreSQL externo com pgvector (ex: Supabase, Neon, ou um PostgreSQL self-hosted com pgvector)
+   - Ou instale manualmente a extensão no PostgreSQL do Railway (se possível)
+
+3. **Verificar se o setup continuou**: Mesmo com o erro da extensão, o Chatwoot deve continuar o setup. Verifique os logs para confirmar que o servidor iniciou.
+
+**Nota**: A maioria das funcionalidades do Chatwoot funciona sem a extensão `vector`. Ela é necessária apenas para recursos avançados de IA/busca vetorial.
 
 ### Backend não consegue conectar ao Chatwoot
 
