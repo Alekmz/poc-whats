@@ -1,0 +1,24 @@
+FROM node:20-slim
+
+# Instalar dependências necessárias
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copiar arquivos de dependências
+COPY package*.json ./
+
+# Instalar dependências
+RUN npm install
+
+# Criar next-env.d.ts se não existir (evita erro -35 no macOS)
+RUN touch next-env.d.ts || true
+
+# Expor porta
+EXPOSE 3000
+
+# Comando padrão (será sobrescrito pelo docker-compose)
+CMD ["npm", "run", "dev"]

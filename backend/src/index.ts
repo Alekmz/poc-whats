@@ -16,8 +16,32 @@ import eventsRoutes from './routes/events';
 import botRoutes from './routes/bot';
 import { setupSwagger } from './config/swagger';
 
-// Carregar .env do diretório backend
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// Carregar .env (apenas se o arquivo existir)
+// No Docker/produção, as variáveis de ambiente são passadas diretamente via sistema
+// Tentar múltiplos caminhos possíveis
+const envPaths = [
+  path.resolve(__dirname, '../.env'),           // backend/.env
+  path.resolve(__dirname, '../../.env'),        // raiz/.env
+  path.resolve(process.cwd(), '.env'),          // diretório atual/.env
+];
+
+let envLoaded = false;
+for (const envPath of envPaths) {
+  try {
+    const result = dotenv.config({ path: envPath });
+    if (!result.error) {
+      envLoaded = true;
+      console.log(`✅ Arquivo .env carregado de: ${envPath}`);
+      break;
+    }
+  } catch (error) {
+    // Continuar tentando outros caminhos
+  }
+}
+
+if (!envLoaded) {
+  console.log('ℹ️  Arquivo .env não encontrado, usando variáveis de ambiente do sistema');
+}
 
 const app = express();
 const PORT = process.env.PORT || 4000;

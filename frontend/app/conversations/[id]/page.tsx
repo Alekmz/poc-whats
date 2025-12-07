@@ -429,7 +429,7 @@ export default function ConversationPage() {
                           if (imageUrls && imageUrls.length > 0) {
                             // Remover URLs de imagens do texto
                             let textContent = content;
-                            imageUrls.forEach(url => {
+                            imageUrls.forEach((url: string) => {
                               textContent = textContent.replace(url, '').trim();
                             });
                             
@@ -443,7 +443,7 @@ export default function ConversationPage() {
                             
                             return (
                               <>
-                                {imageUrls.map((url, idx) => (
+                                {imageUrls.map((url: string, idx: number) => (
                                   <img
                                     key={idx}
                                     src={url}

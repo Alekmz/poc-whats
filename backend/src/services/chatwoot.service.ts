@@ -1066,16 +1066,16 @@ export class ChatwootService {
         message_type_type: typeof message.message_type,
         sender: message.sender,
         sender_type: message.sender?.type,
-        private: message.private,
+        private: (message as any).private,
         content: message.content?.substring(0, 50),
         full_message: JSON.stringify(message, null, 2),
       });
       
       // Verificar se é outgoing de múltiplas formas
+      const messageType = message.message_type;
       const isOutgoing = 
-        message.message_type === 1 || 
-        message.message_type === 'outgoing' ||
-        message.message_type === 'Outgoing' ||
+        messageType === 1 || 
+        String(messageType).toLowerCase() === 'outgoing' ||
         message.sender?.type === 'user' ||
         message.sender?.type === 'User' ||
         (message.sender && message.sender.type !== 'contact' && message.sender.type !== 'Contact');

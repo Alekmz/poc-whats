@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,15 +5,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-// Seed configuration
-// Run with: npm run prisma:seed
-
-enum UserRole {
-  ADMIN
-  SUPERVISOR
-  OPERATOR
 }
 
 model User {
@@ -28,8 +16,7 @@ model User {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  logs Log[]
+  logs         Log[]
 
   @@map("users")
 }
@@ -37,11 +24,11 @@ model User {
 model Log {
   id             String   @id @default(uuid())
   userId         String
-  user           User     @relation(fields: [userId], references: [id])
   action         String
   conversationId String?
   timestamp      DateTime @default(now())
   metadata       Json?
+  user           User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([conversationId])
@@ -60,50 +47,48 @@ model Setting {
 }
 
 model WhatsAppNumber {
-  id          String   @id @default(uuid())
-  instanceId  String   @unique
+  id          String    @id @default(uuid())
+  instanceId  String    @unique
   token       String
   phoneNumber String?
   name        String?
-  isConnected Boolean  @default(false)
+  isConnected Boolean   @default(false)
   lastSeen    DateTime?
   qrCode      String?
-  inboxId     Int?     // ID do inbox do Chatwoot associado
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  botFlows BotFlow[]
+  inboxId     Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  botFlows    BotFlow[]
 
   @@map("whatsapp_numbers")
 }
 
 model BotFlow {
-  id              String   @id @default(uuid())
-  name            String   // Nome do fluxo (ex: "URA Principal")
+  id               String         @id @default(uuid())
+  name             String
   whatsappNumberId String
-  whatsappNumber  WhatsAppNumber @relation(fields: [whatsappNumberId], references: [id], onDelete: Cascade)
-  isActive        Boolean  @default(true)
-  initialMessage  String   // Mensagem inicial do bot
-  menuSteps       Json     // Estrutura de menus (ex: [{key: "1", text: "Atendimento", nextStep: "..."}])
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  sessions BotSession[]
+  isActive         Boolean        @default(true)
+  initialMessage   String
+  menuSteps        Json
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  whatsappNumber   WhatsAppNumber @relation(fields: [whatsappNumberId], references: [id], onDelete: Cascade)
+  sessions         BotSession[]
 
   @@map("bot_flows")
 }
 
 model BotSession {
   id             String   @id @default(uuid())
-  phoneNumber    String   // Telefone do usuário
+  phoneNumber    String
   botFlowId      String
-  botFlow        BotFlow  @relation(fields: [botFlowId], references: [id], onDelete: Cascade)
-  currentStep    String?  // Step atual no fluxo
-  context        Json?    // Dados coletados durante o fluxo
+  currentStep    String?
+  context        Json?
   isActive       Boolean  @default(true)
-  conversationId Int?     // ID da conversa no Chatwoot (quando transferir para humano)
+  conversationId Int?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  botFlow        BotFlow  @relation(fields: [botFlowId], references: [id], onDelete: Cascade)
 
   @@unique([phoneNumber, botFlowId, isActive])
   @@index([phoneNumber])
@@ -111,3 +96,8 @@ model BotSession {
   @@map("bot_sessions")
 }
 
+enum UserRole {
+  ADMIN
+  SUPERVISOR
+  OPERATOR
+}

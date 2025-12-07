@@ -31,9 +31,10 @@ MVP de uma plataforma corporativa para gestão de WhatsApp Business, com painéi
 
 4. Inicie os serviços:
    ```bash
-   docker-compose up -d
-   npm run dev
+   docker compose up -d
    ```
+   
+   **Nota**: O docker-compose usa `Dockerfile.dev` para desenvolvimento local. Para produção no Railway, use os `Dockerfile` padrão.
 
 5. Acesse:
    - Frontend: http://localhost:3000
@@ -46,11 +47,31 @@ MVP de uma plataforma corporativa para gestão de WhatsApp Business, com painéi
 ```
 poc_whats/
 ├── backend/          # API Express
+│   ├── Dockerfile    # Produção (Railway)
+│   └── Dockerfile.dev # Desenvolvimento (docker-compose)
 ├── frontend/         # Next.js App
-├── docker/           # Dockerfiles
-├── docker-compose.yml
+│   ├── Dockerfile    # Produção (Railway)
+│   └── Dockerfile.dev # Desenvolvimento (docker-compose)
+├── docker/           # Scripts Docker
+├── docker-compose.yml # Desenvolvimento local
 └── setup.sh
 ```
+
+## 🐳 Docker
+
+### Desenvolvimento Local
+
+Use `docker-compose.yml` com os Dockerfiles de desenvolvimento:
+
+```bash
+docker compose up -d
+```
+
+Veja [DOCKER_SETUP.md](./DOCKER_SETUP.md) para mais detalhes.
+
+### Produção (Railway)
+
+Os Dockerfiles de produção são usados automaticamente no Railway. Veja [RAILWAY_SETUP.md](./RAILWAY_SETUP.md) para configuração completa.
 
 ## 🔐 Roles e Permissões
 

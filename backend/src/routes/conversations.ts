@@ -35,7 +35,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 
     console.log(`📋 Listando conversas - inboxId: ${inboxId}, status: ${status}, whatsappNumberId: ${whatsappNumberId}`);
 
-    let conversations;
+    let conversations: any[] = [];
     let targetInboxId = inboxId;
 
     // Se especificou whatsappNumberId, buscar o inbox associado

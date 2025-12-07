@@ -1,0 +1,21 @@
+# Railway ignore file
+node_modules/
+.git/
+.gitignore
+*.md
+!README.md
+.env
+.env.local
+.env.*.local
+.DS_Store
+*.log
+.vscode/
+.idea/
+dist/
+.next/
+coverage/
+.nyc_output/
+docker-compose.yml
+docker/
+scripts/
+*.sh

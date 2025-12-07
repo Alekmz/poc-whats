@@ -421,7 +421,10 @@ router.get('/:id/stats', async (req: AuthRequest, res: Response) => {
         const messages = await chatwootService.listMessages(conversation.id);
         
         for (const message of messages) {
-          const messageDate = new Date(message.created_at * 1000 || message.created_at);
+          const createdAt = typeof message.created_at === 'number' 
+            ? message.created_at * 1000 
+            : new Date(message.created_at).getTime();
+          const messageDate = new Date(createdAt);
           if (messageDate >= last24h) {
             const hour = messageDate.getHours();
             hourCounts[hour] = (hourCounts[hour] || 0) + 1;

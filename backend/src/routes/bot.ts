@@ -367,9 +367,7 @@ router.post('/sessions/:id/transfer', async (req: AuthRequest, res: Response) =>
       // Enviar mensagem de transferência
       await chatwootService.createMessageInConversation(
         conversationId,
-        `🤖 Conversa transferida do bot manualmente. Cliente estava no step: ${session.currentStep || 'initial'}`,
-        'outgoing',
-        'user'
+        `🤖 Conversa transferida do bot manualmente. Cliente estava no step: ${session.currentStep || 'initial'}`
       );
 
       if (req.user) {

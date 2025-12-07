@@ -72,16 +72,19 @@ router.post(
         throw new Error('JWT secrets não configurados');
       }
 
+      const secret: string = jwtSecret;
+      const refreshSecret: string = jwtRefreshSecret;
+
       const token = jwt.sign(
         { userId: user.id, email: user.email, role: user.role },
-        jwtSecret,
-        { expiresIn: jwtExpiresIn }
+        secret,
+        { expiresIn: jwtExpiresIn } as jwt.SignOptions
       );
 
       const refreshToken = jwt.sign(
         { userId: user.id },
-        jwtRefreshSecret,
-        { expiresIn: jwtRefreshExpiresIn }
+        refreshSecret,
+        { expiresIn: jwtRefreshExpiresIn } as jwt.SignOptions
       );
 
       await auditLog(user.id, 'LOGIN', undefined, { email: user.email });
@@ -157,10 +160,12 @@ router.post('/refresh', async (req: Request, res: Response) => {
       throw new Error('JWT_SECRET não configurado');
     }
 
+    const secret: string = jwtSecret;
+
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
-      jwtSecret,
-      { expiresIn: jwtExpiresIn }
+      secret,
+      { expiresIn: jwtExpiresIn } as jwt.SignOptions
     );
 
     res.json({ token });

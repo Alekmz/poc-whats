@@ -265,9 +265,7 @@ export class BotService {
       // Enviar mensagem de transferência
       await this.chatwootService.createMessageInConversation(
         conversationId,
-        `🤖 Conversa transferida do bot. Cliente estava no step: ${session.currentStep || 'initial'}`,
-        'outgoing',
-        'user'
+        `🤖 Conversa transferida do bot. Cliente estava no step: ${session.currentStep || 'initial'}`
       );
 
       console.log(`✅ Sessão transferida para Chatwoot: conversa ${conversationId}`);

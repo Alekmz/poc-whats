@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: pgvector/pgvector:pg15
@@ -38,7 +36,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: whatsapp_platform_backend
     environment:
       NODE_ENV: ${NODE_ENV:-development}
@@ -68,10 +66,11 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: whatsapp_platform_frontend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:4000
+      NODE_ENV: development
     ports:
       - "3000:3000"
     depends_on:
@@ -80,7 +79,10 @@ services:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
-    command: npm run dev
+    # Usar root para evitar problemas de permissão no macOS (erro -35)
+    user: root
+    # Criar next-env.d.ts antes e garantir permissões corretas
+    command: sh -c "touch /app/next-env.d.ts 2>/dev/null || true && npm run dev"
 
   adminer:
     image: adminer:latest
