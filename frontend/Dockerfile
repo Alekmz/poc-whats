@@ -16,6 +16,8 @@ RUN npm install
 
 # Build
 FROM base AS builder
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Criar diretório public se não existir (Next.js pode precisar)
@@ -25,8 +27,7 @@ RUN npm run build
 # Produção
 FROM base AS runner
 ENV NODE_ENV=production
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 
 # Criar usuário não-root
 RUN groupadd --system --gid 1001 nodejs && \
