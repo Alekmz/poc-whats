@@ -69,7 +69,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: whatsapp_platform_frontend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:4000
+      NEXT_PUBLIC_API_URL: https://backend-production-f9d8.up.railway.app
       NODE_ENV: development
     ports:
       - "3000:3000"
