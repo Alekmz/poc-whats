@@ -32,7 +32,8 @@ RUN chmod +x /app/entrypoint.sh
 EXPOSE 3000
 
 # Health check usando Ruby (que já está disponível na imagem)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=300s --retries=5 \
+# start-period aumentado para 10 minutos para dar tempo do setup inicial
+HEALTHCHECK --interval=30s --timeout=10s --start-period=600s --retries=10 \
   CMD ruby -e "require 'socket'; begin; TCPSocket.new('127.0.0.1', 3000).close; exit 0; rescue; exit 1; end"
 
 # Comando de inicialização

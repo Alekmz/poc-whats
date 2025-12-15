@@ -208,77 +208,102 @@ else
   fi
 fi
 
-# Executar setup do Chatwoot
-# O db:chatwoot_prepare pode falhar se a extensão vector não estiver disponível
-# Nesse caso, tentamos executar migrations e seed manualmente
-echo "Executando setup do Chatwoot..."
-SETUP_OUTPUT=$(bundle exec rails db:chatwoot_prepare 2>&1)
-SETUP_EXIT_CODE=$?
-
-if [ $SETUP_EXIT_CODE -eq 0 ]; then
-  echo "✓ Setup do Chatwoot concluído com sucesso!"
+# Verificar se o banco já está configurado (tem tabelas)
+echo "Verificando se o banco já está configurado..."
+TABLE_COUNT="0"
+if command -v psql > /dev/null 2>&1; then
+  TABLE_COUNT=$(PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USERNAME}" -d "${POSTGRES_DATABASE}" -tc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
 else
-  echo "⚠ Erro no setup do Chatwoot (código: $SETUP_EXIT_CODE)"
-  echo "$SETUP_OUTPUT"
+  TABLE_COUNT=$(ruby -e "
+    require 'pg'
+    begin
+      conn = PG.connect(
+        host: '${POSTGRES_HOST}',
+        port: ${POSTGRES_PORT:-5432},
+        dbname: '${POSTGRES_DATABASE}',
+        user: '${POSTGRES_USERNAME}',
+        password: '${POSTGRES_PASSWORD}'
+      )
+      result = conn.exec(\"SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'\")
+      conn.close
+      puts result[0]['count']
+    rescue
+      puts '0'
+    end
+  " 2>/dev/null || echo "0")
+fi
+
+# Executar setup do Chatwoot apenas se necessário
+if [ "$TABLE_COUNT" -eq "0" ] || [ -z "$TABLE_COUNT" ]; then
+  echo "Banco está vazio, executando setup do Chatwoot..."
+  echo "Executando db:chatwoot_prepare (isso pode levar alguns minutos)..."
   
-  # Verificar se o erro é relacionado à extensão vector
-  if echo "$SETUP_OUTPUT" | grep -qi "vector\|pgvector"; then
-    echo "⚠ Erro relacionado à extensão 'vector' detectado"
-    echo "Isso é esperado se o PostgreSQL não tiver pgvector instalado"
+  # Executar com timeout de 5 minutos (se disponível)
+  if command -v timeout > /dev/null 2>&1; then
+    SETUP_OUTPUT=$(timeout 300 bundle exec rails db:chatwoot_prepare 2>&1)
+    SETUP_EXIT_CODE=$?
+  else
+    # Se timeout não estiver disponível, executar diretamente
+    SETUP_OUTPUT=$(bundle exec rails db:chatwoot_prepare 2>&1)
+    SETUP_EXIT_CODE=$?
+  fi
+  
+  if [ $SETUP_EXIT_CODE -eq 0 ]; then
+    echo "✓ Setup do Chatwoot concluído com sucesso!"
+  elif [ $SETUP_EXIT_CODE -eq 124 ]; then
+    echo "⚠ Timeout no setup do Chatwoot (5 minutos)"
     echo "Tentando executar migrations e seed manualmente..."
     
     # Tentar executar migrations
     echo "Executando migrations..."
-    if bundle exec rails db:migrate 2>&1; then
-      echo "✓ Migrations executadas com sucesso"
-    else
-      echo "⚠ Aviso: Migrations podem ter falhado, mas continuando..."
-    fi
+    bundle exec rails db:migrate 2>&1 || echo "⚠ Aviso: Migrations podem ter falhado"
     
-    # Tentar executar seed apenas se o banco estiver vazio
-    echo "Verificando se é necessário executar seed..."
-    if command -v psql > /dev/null 2>&1; then
-      TABLE_COUNT=$(PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USERNAME}" -d "${POSTGRES_DATABASE}" -tc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
-    else
-      TABLE_COUNT=$(ruby -e "
-        require 'pg'
-        begin
-          conn = PG.connect(
-            host: '${POSTGRES_HOST}',
-            port: ${POSTGRES_PORT:-5432},
-            dbname: '${POSTGRES_DATABASE}',
-            user: '${POSTGRES_USERNAME}',
-            password: '${POSTGRES_PASSWORD}'
-          )
-          result = conn.exec(\"SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'\")
-          conn.close
-          puts result[0]['count']
-        rescue
-          puts '0'
-        end
-      " 2>/dev/null || echo "0")
-    fi
-    
-    if [ "$TABLE_COUNT" -eq "0" ] || [ -z "$TABLE_COUNT" ]; then
-      echo "Banco parece estar vazio, executando seed..."
-      if bundle exec rails db:seed 2>&1; then
-        echo "✓ Seed executado com sucesso"
-      else
-        echo "⚠ Aviso: Seed pode ter falhado, mas continuando..."
-      fi
-    else
-      echo "Banco já tem tabelas, pulando seed"
-    fi
+    # Tentar executar seed
+    echo "Executando seed..."
+    bundle exec rails db:seed 2>&1 || echo "⚠ Aviso: Seed pode ter falhado"
   else
-    echo "⚠ Erro diferente da extensão vector detectado"
-    echo "Verifique os logs acima para mais detalhes"
+    echo "⚠ Erro no setup do Chatwoot (código: $SETUP_EXIT_CODE)"
+    echo "Últimas linhas do output:"
+    echo "$SETUP_OUTPUT" | tail -20
+    
+    # Verificar se o erro é relacionado à extensão vector
+    if echo "$SETUP_OUTPUT" | grep -qi "vector\|pgvector"; then
+      echo "⚠ Erro relacionado à extensão 'vector' detectado"
+      echo "Isso é esperado se o PostgreSQL não tiver pgvector instalado"
+      echo "Tentando executar migrations e seed manualmente..."
+      
+      # Tentar executar migrations
+      echo "Executando migrations..."
+      bundle exec rails db:migrate 2>&1 || echo "⚠ Aviso: Migrations podem ter falhado"
+      
+      # Tentar executar seed
+      echo "Executando seed..."
+      bundle exec rails db:seed 2>&1 || echo "⚠ Aviso: Seed pode ter falhado"
+    else
+      echo "⚠ Erro diferente da extensão vector detectado"
+      echo "Tentando executar migrations mesmo assim..."
+      bundle exec rails db:migrate 2>&1 || echo "⚠ Aviso: Migrations podem ter falhado"
+    fi
+  fi
+else
+  echo "✓ Banco já tem $TABLE_COUNT tabelas, pulando setup inicial"
+  echo "Executando migrations pendentes (se houver)..."
+  bundle exec rails db:migrate 2>&1 || echo "⚠ Aviso: Migrations podem ter falhado"
+fi
+
+# Iniciar servidor em background primeiro para verificar se inicia corretamente
+echo "=== Preparando para iniciar servidor Chatwoot ==="
+echo "Porta: 3000"
+echo "Ambiente: ${RAILS_ENV:-production}"
+echo "Timestamp: $(date)"
+
+# Verificar se a porta está disponível
+if command -v nc > /dev/null 2>&1; then
+  if nc -z 127.0.0.1 3000 2>/dev/null; then
+    echo "⚠ Aviso: Porta 3000 já está em uso"
   fi
 fi
 
 # Iniciar servidor
 echo "=== Iniciando servidor Chatwoot ==="
-echo "Porta: 3000"
-echo "Ambiente: ${RAILS_ENV:-production}"
-echo "Timestamp: $(date)"
-
 exec bundle exec rails s -p 3000 -b 0.0.0.0
