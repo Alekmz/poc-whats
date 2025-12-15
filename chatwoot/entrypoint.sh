@@ -13,10 +13,42 @@ wait_for_postgres() {
   local max_attempts=30
   local attempt=0
   
+  # Tentar usar psql se disponível, senão usar Ruby
+  local use_ruby=false
+  if ! command -v psql > /dev/null 2>&1; then
+    use_ruby=true
+  fi
+  
   while [ $attempt -lt $max_attempts ]; do
-    if PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USERNAME}" -d "${POSTGRES_DATABASE}" -c "SELECT 1" > /dev/null 2>&1; then
-      echo "✓ PostgreSQL está acessível"
-      return 0
+    if [ "$use_ruby" = true ]; then
+      # Usar Ruby para verificar conexão
+      if ruby -e "
+        require 'pg'
+        begin
+          conn = PG.connect(
+            host: '${POSTGRES_HOST}',
+            port: ${POSTGRES_PORT:-5432},
+            dbname: '${POSTGRES_DATABASE}',
+            user: '${POSTGRES_USERNAME}',
+            password: '${POSTGRES_PASSWORD}',
+            connect_timeout: 2
+          )
+          conn.exec('SELECT 1')
+          conn.close
+          exit 0
+        rescue
+          exit 1
+        end
+      " 2>/dev/null; then
+        echo "✓ PostgreSQL está acessível"
+        return 0
+      fi
+    else
+      # Usar psql
+      if PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USERNAME}" -d "${POSTGRES_DATABASE}" -c "SELECT 1" > /dev/null 2>&1; then
+        echo "✓ PostgreSQL está acessível"
+        return 0
+      fi
     fi
     attempt=$((attempt + 1))
     echo "Tentativa $attempt/$max_attempts: Aguardando PostgreSQL..."
@@ -47,10 +79,34 @@ wait_for_redis() {
   local max_attempts=30
   local attempt=0
   
+  # Tentar usar nc se disponível, senão usar Ruby
+  local use_ruby=false
+  if ! command -v nc > /dev/null 2>&1; then
+    use_ruby=true
+  fi
+  
   while [ $attempt -lt $max_attempts ]; do
-    if nc -z "$redis_host" "$redis_port" 2>/dev/null; then
-      echo "✓ Redis está acessível"
-      return 0
+    if [ "$use_ruby" = true ]; then
+      # Usar Ruby para verificar conexão
+      if ruby -e "
+        require 'socket'
+        begin
+          socket = TCPSocket.new('${redis_host}', ${redis_port})
+          socket.close
+          exit 0
+        rescue
+          exit 1
+        end
+      " 2>/dev/null; then
+        echo "✓ Redis está acessível"
+        return 0
+      fi
+    else
+      # Usar nc
+      if nc -z "$redis_host" "$redis_port" 2>/dev/null; then
+        echo "✓ Redis está acessível"
+        return 0
+      fi
     fi
     attempt=$((attempt + 1))
     echo "Tentativa $attempt/$max_attempts: Aguardando Redis..."
@@ -91,15 +147,65 @@ wait_for_redis || {
 
 # Verificar se o banco de dados existe
 echo "Verificando se o banco de dados existe..."
-if ! PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USERNAME}" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = '${POSTGRES_DATABASE}'" | grep -q 1; then
-  echo "Banco de dados '${POSTGRES_DATABASE}' não existe. Criando..."
-  PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USERNAME}" -d postgres -c "CREATE DATABASE ${POSTGRES_DATABASE};" || {
-    echo "✗ Erro ao criar banco de dados"
-    exit 1
-  }
-  echo "✓ Banco de dados criado"
+if command -v psql > /dev/null 2>&1; then
+  # Usar psql se disponível
+  if ! PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USERNAME}" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = '${POSTGRES_DATABASE}'" | grep -q 1; then
+    echo "Banco de dados '${POSTGRES_DATABASE}' não existe. Criando..."
+    PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USERNAME}" -d postgres -c "CREATE DATABASE ${POSTGRES_DATABASE};" || {
+      echo "✗ Erro ao criar banco de dados"
+      exit 1
+    }
+    echo "✓ Banco de dados criado"
+  else
+    echo "✓ Banco de dados já existe"
+  fi
 else
-  echo "✓ Banco de dados já existe"
+  # Usar Ruby se psql não estiver disponível
+  DB_EXISTS=$(ruby -e "
+    require 'pg'
+    begin
+      conn = PG.connect(
+        host: '${POSTGRES_HOST}',
+        port: ${POSTGRES_PORT:-5432},
+        dbname: 'postgres',
+        user: '${POSTGRES_USERNAME}',
+        password: '${POSTGRES_PASSWORD}'
+      )
+      result = conn.exec(\"SELECT 1 FROM pg_database WHERE datname = '${POSTGRES_DATABASE}'\")
+      conn.close
+      puts result.ntuples > 0 ? '1' : '0'
+    rescue => e
+      puts '0'
+    end
+  " 2>/dev/null)
+  
+  if [ "$DB_EXISTS" != "1" ]; then
+    echo "Banco de dados '${POSTGRES_DATABASE}' não existe. Criando..."
+    ruby -e "
+      require 'pg'
+      begin
+        conn = PG.connect(
+          host: '${POSTGRES_HOST}',
+          port: ${POSTGRES_PORT:-5432},
+          dbname: 'postgres',
+          user: '${POSTGRES_USERNAME}',
+          password: '${POSTGRES_PASSWORD}'
+        )
+        conn.exec(\"CREATE DATABASE ${POSTGRES_DATABASE}\")
+        conn.close
+        exit 0
+      rescue => e
+        puts \"Erro: #{e.message}\"
+        exit 1
+      end
+    " || {
+      echo "✗ Erro ao criar banco de dados"
+      exit 1
+    }
+    echo "✓ Banco de dados criado"
+  else
+    echo "✓ Banco de dados já existe"
+  fi
 fi
 
 # Executar setup do Chatwoot
@@ -131,7 +237,27 @@ else
     
     # Tentar executar seed apenas se o banco estiver vazio
     echo "Verificando se é necessário executar seed..."
-    TABLE_COUNT=$(PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USERNAME}" -d "${POSTGRES_DATABASE}" -tc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
+    if command -v psql > /dev/null 2>&1; then
+      TABLE_COUNT=$(PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USERNAME}" -d "${POSTGRES_DATABASE}" -tc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
+    else
+      TABLE_COUNT=$(ruby -e "
+        require 'pg'
+        begin
+          conn = PG.connect(
+            host: '${POSTGRES_HOST}',
+            port: ${POSTGRES_PORT:-5432},
+            dbname: '${POSTGRES_DATABASE}',
+            user: '${POSTGRES_USERNAME}',
+            password: '${POSTGRES_PASSWORD}'
+          )
+          result = conn.exec(\"SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'\")
+          conn.close
+          puts result[0]['count']
+        rescue
+          puts '0'
+        end
+      " 2>/dev/null || echo "0")
+    fi
     
     if [ "$TABLE_COUNT" -eq "0" ] || [ -z "$TABLE_COUNT" ]; then
       echo "Banco parece estar vazio, executando seed..."
