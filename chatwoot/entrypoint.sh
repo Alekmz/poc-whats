@@ -4,6 +4,9 @@
 
 set -o pipefail
 
+# Redirecionar stderr para stdout para capturar todos os logs
+exec 2>&1
+
 echo "=== Inicialização do Chatwoot ==="
 echo "Timestamp: $(date)"
 
@@ -291,19 +294,80 @@ else
   bundle exec rails db:migrate 2>&1 || echo "⚠ Aviso: Migrations podem ter falhado"
 fi
 
-# Iniciar servidor em background primeiro para verificar se inicia corretamente
-echo "=== Preparando para iniciar servidor Chatwoot ==="
-echo "Porta: 3000"
-echo "Ambiente: ${RAILS_ENV:-production}"
-echo "Timestamp: $(date)"
+# Verificar variáveis críticas antes de iniciar
+echo ""
+echo "=========================================="
+echo "=== Verificando configuração final ==="
+echo "=========================================="
+echo "POSTGRES_HOST: ${POSTGRES_HOST}"
+echo "POSTGRES_DATABASE: ${POSTGRES_DATABASE}"
+echo "POSTGRES_USERNAME: ${POSTGRES_USERNAME}"
+echo "POSTGRES_PORT: ${POSTGRES_PORT:-5432}"
+echo "REDIS_URL: ${REDIS_URL:-não definido}"
+echo "RAILS_ENV: ${RAILS_ENV:-production}"
+echo "SECRET_KEY_BASE: ${SECRET_KEY_BASE:+definido (${#SECRET_KEY_BASE} caracteres)}"
+echo "FRONTEND_URL: ${FRONTEND_URL:-não definido}"
+echo "PORT: ${PORT:-3000}"
+echo "=========================================="
+
+# Garantir que estamos no diretório correto
+cd /app || {
+  echo "✗ Erro: Não foi possível acessar o diretório /app"
+  exit 1
+}
+
+# Verificar se bundle está disponível
+if ! command -v bundle > /dev/null 2>&1; then
+  echo "✗ Erro: bundle não está disponível"
+  exit 1
+fi
+
+# Verificar se rails está disponível
+echo "Verificando Rails..."
+if bundle exec rails --version > /dev/null 2>&1; then
+  RAILS_VERSION=$(bundle exec rails --version 2>/dev/null || echo "desconhecida")
+  echo "✓ Rails disponível: $RAILS_VERSION"
+else
+  echo "⚠ Aviso: Não foi possível verificar versão do Rails, mas continuando..."
+fi
 
 # Verificar se a porta está disponível
 if command -v nc > /dev/null 2>&1; then
   if nc -z 127.0.0.1 3000 2>/dev/null; then
     echo "⚠ Aviso: Porta 3000 já está em uso"
+  else
+    echo "✓ Porta 3000 está disponível"
   fi
 fi
 
-# Iniciar servidor
-echo "=== Iniciando servidor Chatwoot ==="
+# Verificar conexão com banco uma última vez antes de iniciar
+echo "Verificando conexão final com PostgreSQL..."
+if command -v psql > /dev/null 2>&1; then
+  if PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT:-5432}" -U "${POSTGRES_USERNAME}" -d "${POSTGRES_DATABASE}" -c "SELECT 1" > /dev/null 2>&1; then
+    echo "✓ Conexão com PostgreSQL confirmada"
+  else
+    echo "⚠ Aviso: Não foi possível verificar conexão com PostgreSQL, mas continuando..."
+  fi
+fi
+
+# Iniciar servidor com logs detalhados
+echo ""
+echo "=========================================="
+echo "=== INICIANDO SERVIDOR CHATWOOT ==="
+echo "=========================================="
+echo "Comando: bundle exec rails s -p 3000 -b 0.0.0.0"
+echo "Diretório: $(pwd)"
+echo "Timestamp: $(date)"
+echo "=========================================="
+echo ""
+echo "IMPORTANTE: O servidor Rails está iniciando agora."
+echo "Os logs do Rails aparecerão abaixo."
+echo "Aguarde alguns segundos para o servidor ficar pronto."
+echo ""
+echo "=========================================="
+echo ""
+
+# Usar exec para garantir que o Rails seja o processo principal
+# Isso é importante para o Railway detectar o processo corretamente
+# O Rails vai imprimir seus próprios logs automaticamente
 exec bundle exec rails s -p 3000 -b 0.0.0.0

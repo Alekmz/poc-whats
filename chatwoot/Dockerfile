@@ -26,7 +26,15 @@ RUN (command -v apt-get > /dev/null 2>&1 && \
 
 # Copiar script de inicialização
 COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+
+# Garantir permissões e verificar que o arquivo foi copiado corretamente
+RUN chmod +x /app/entrypoint.sh && \
+    ls -la /app/entrypoint.sh && \
+    test -f /app/entrypoint.sh && \
+    test -x /app/entrypoint.sh && \
+    head -1 /app/entrypoint.sh && \
+    which bash || which sh || echo "Shell não encontrado" && \
+    echo "✓ entrypoint.sh copiado e configurado corretamente"
 
 # Expor a porta padrão do Chatwoot
 EXPOSE 3000
@@ -38,4 +46,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=600s --retries=10 \
 
 # Comando de inicialização
 # O script entrypoint.sh trata o erro da extensão vector de forma mais robusta
+# A imagem do Chatwoot baseada em Ruby deve ter bash em /bin/bash
 ENTRYPOINT ["/app/entrypoint.sh"]
