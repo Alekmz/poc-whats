@@ -34,10 +34,47 @@ bash docker/init-chatwoot.sh
 
 ### 3. Criar Conta de Administrador
 
+**Opção 1: Via Interface Web (Recomendado)**
+
 1. Acesse http://localhost:3001
-2. Clique em "Sign Up" ou "Create Account"
+2. Se o botão "Sign Up" aparecer, clique nele
 3. Preencha os dados do primeiro administrador
 4. Faça login
+
+**Opção 2: Acessar Página de Signup Diretamente**
+
+Se o botão não aparecer, tente acessar diretamente:
+- URL: `http://localhost:3001/app/auth/signup`
+
+**Opção 3: Criar Usuário via Console Rails (Se as opções acima não funcionarem)**
+
+Se o registro ainda não estiver disponível, você pode criar o primeiro usuário administrador via console Rails:
+
+```bash
+# Acessar o console Rails do Chatwoot
+docker-compose exec chatwoot bundle exec rails console
+
+# No console Rails, execute:
+account = Account.create!(name: 'Minha Conta')
+user = User.create!(
+  name: 'Administrador',
+  email: 'admin@exemplo.com',
+  password: 'sua_senha_segura',
+  password_confirmation: 'sua_senha_segura',
+  confirmed_at: Time.current
+)
+account_user = AccountUser.create!(
+  account: account,
+  user: user,
+  role: :administrator
+)
+puts "✅ Usuário criado: #{user.email}"
+exit
+```
+
+Depois disso, você poderá fazer login com o email e senha criados.
+
+**Nota**: A variável `ENABLE_ACCOUNT_SIGNUP=true` já está configurada no `docker-compose.yml` para habilitar o registro. Se ainda não aparecer, use uma das opções acima.
 
 ### 4. Criar uma Inbox
 
@@ -135,6 +172,29 @@ docker-compose exec postgres psql -U postgres -c "CREATE DATABASE chatwoot_produ
 - Verifique se a URL está correta: `http://chatwoot:3000` (não `localhost`)
 - Verifique os logs: `docker-compose logs backend`
 
+### Botão de Registro não aparece
+
+**Sintoma**: Apenas a tela de login aparece, sem opção de registro.
+
+**Soluções**:
+
+1. **Verificar variável de ambiente**:
+   ```bash
+   # Verificar se ENABLE_ACCOUNT_SIGNUP está configurada
+   docker-compose exec chatwoot env | grep ENABLE_ACCOUNT_SIGNUP
+   ```
+   Deve retornar: `ENABLE_ACCOUNT_SIGNUP=true`
+
+2. **Acessar página de signup diretamente**:
+   - Tente acessar: `http://localhost:3001/app/auth/signup`
+
+3. **Criar usuário via console Rails** (veja Opção 3 na seção "Criar Conta de Administrador")
+
+4. **Reiniciar o Chatwoot** após adicionar a variável:
+   ```bash
+   docker-compose restart chatwoot
+   ```
+
 ## Variáveis de Ambiente do Chatwoot
 
 As principais variáveis já estão configuradas no `docker-compose.yml`:
@@ -146,6 +206,7 @@ As principais variáveis já estão configuradas no `docker-compose.yml`:
 - `REDIS_URL`: redis://redis:6379
 - `RAILS_ENV`: production
 - `FRONTEND_URL`: http://localhost:3001
+- `ENABLE_ACCOUNT_SIGNUP`: true (habilita o botão de registro)
 
 ## Próximos Passos
 

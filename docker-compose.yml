@@ -130,6 +130,7 @@ services:
       FORCE_SSL: "false"
       INSTALLATION_NAME: "WhatsApp Platform Chatwoot"
       INSTALLATION_VERSION: "1.0.0"
+      ENABLE_ACCOUNT_SIGNUP: "true"
     ports:
       - "3001:3000"
     depends_on:

@@ -63,6 +63,7 @@ FRONTEND_URL=https://seu-chatwoot.railway.app
 FORCE_SSL=false
 INSTALLATION_NAME=WhatsApp Platform Chatwoot
 PORT=3000
+ENABLE_ACCOUNT_SIGNUP=true
 ```
 
 **Gerar SECRET_KEY_BASE:**
@@ -83,11 +84,50 @@ openssl rand -hex 64
 
 ### 7. Criar Conta e Obter Token
 
+**Opção 1: Via Interface Web (Recomendado)**
+
 1. Acesse a URL do Chatwoot
-2. Crie conta de administrador
-3. Crie uma Inbox (Settings → Inboxes → Add Inbox → API)
-4. Gere API Token (Settings → Applications → New Application)
-5. Copie o token gerado
+2. Se o botão "Sign Up" aparecer, clique nele
+3. Crie conta de administrador
+4. Crie uma Inbox (Settings → Inboxes → Add Inbox → API)
+5. Gere API Token (Settings → Applications → New Application)
+6. Copie o token gerado
+
+**Opção 2: Acessar Página de Signup Diretamente**
+
+Se o botão não aparecer, tente acessar diretamente:
+- URL: `https://seu-chatwoot.railway.app/app/auth/signup`
+
+**Opção 3: Criar Usuário via Console Rails (Se as opções acima não funcionarem)**
+
+Se o registro ainda não estiver disponível, você pode criar o primeiro usuário administrador via console Rails no Railway:
+
+1. No Railway, vá para o serviço Chatwoot
+2. Use o Railway CLI:
+   ```bash
+   railway run --service chatwoot bundle exec rails console
+   ```
+
+3. No console Rails, execute:
+   ```ruby
+   account = Account.create!(name: 'Minha Conta')
+   user = User.create!(
+     name: 'Administrador',
+     email: 'admin@exemplo.com',
+     password: 'sua_senha_segura',
+     password_confirmation: 'sua_senha_segura',
+     confirmed_at: Time.current
+   )
+   account_user = AccountUser.create!(
+     account: account,
+     user: user,
+     role: :administrator
+   )
+   puts "✅ Usuário criado: #{user.email}"
+   exit
+   ```
+
+Depois disso, você poderá fazer login com o email e senha criados.
 
 ### 8. Configurar no Backend
 
@@ -131,6 +171,25 @@ curl -H "api_access_token: SEU_TOKEN" \
 - Verifique se a URL está correta (deve ser pública com `https://`)
 - Verifique se o token está correto
 - Teste a API do Chatwoot manualmente
+
+### Botão de Registro não aparece
+
+**Sintoma**: Apenas a tela de login aparece, sem opção de registro.
+
+**Soluções**:
+
+1. **Verificar variável de ambiente**:
+   - No Railway, vá em **Settings** → **Variables**
+   - Verifique se `ENABLE_ACCOUNT_SIGNUP=true` está configurada
+   - Se não estiver, adicione e faça redeploy
+
+2. **Acessar página de signup diretamente**:
+   - Tente acessar: `https://seu-chatwoot.railway.app/app/auth/signup`
+
+3. **Criar usuário via console Rails** (veja Opção 3 na seção "Criar Conta e Obter Token")
+
+4. **Fazer redeploy** após adicionar a variável:
+   - No Railway, vá em **Deployments** → **Redeploy**
 
 ## 📚 Documentação Completa
 
