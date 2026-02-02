@@ -1,0 +1,249 @@
+commit 398c2b1c4dbb0e411665aed3067c05dee5531737
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Tue Dec 16 22:37:32 2025 -0300
+
+    fix chatwoot enable signup
+
+ CHATWOOT_SETUP.md                           |  63 ++-
+ Cousts.md                                   |   0
+ ORCAMENTO_COMPLETO_AWS_META.md              | 173 ++++++++
+ ORCAMENTO_SAAS_ESCALABILIDADE.md            | 593 ++++++++++++++++++++++++++++
+ ORCAMENTO_ULTRA_OTIMIZADO_ESCALABILIDADE.md | 536 +++++++++++++++++++++++++
+ RAILWAY_CHATWOOT_SETUP.md                   |  67 +++-
+ docker-compose.yml                          |   1 +
+ 7 files changed, 1428 insertions(+), 5 deletions(-)
+
+commit f506f1c7f9bad4dca3f7a8c75cdc60129e9691cd
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Mon Dec 15 17:39:29 2025 -0300
+
+    fix: garantir que bash está disponível e corrigir entrypoint
+
+ chatwoot/Dockerfile | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
+
+commit b508dbef477d0de41891ce95f3aa2c752ba9fe66
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Mon Dec 15 17:36:25 2025 -0300
+
+    fix: corrigir permissões e caminho do entrypoint.sh
+
+ chatwoot/Dockerfile         |  11 ++-
+ chatwoot/TROUBLESHOOTING.md | 200 ++++++++++++++++++++++++++++++++++++++++++++
+ chatwoot/entrypoint.sh      |  78 +++++++++++++++--
+ 3 files changed, 281 insertions(+), 8 deletions(-)
+
+commit 09ea823568720bea4e6d218d45bcab7025167b5d
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Mon Dec 15 07:37:12 2025 -0300
+
+    fix: otimizar setup e aumentar timeout do healthcheck
+
+ chatwoot/Dockerfile    |   3 +-
+ chatwoot/entrypoint.sh | 137 +++++++++++++++++++++++++++++--------------------
+ chatwoot/railway.toml  |   2 +-
+ 3 files changed, 84 insertions(+), 58 deletions(-)
+
+commit ddf3d7acc3910058735818cc93eb22622e16cede
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Mon Dec 15 07:26:57 2025 -0300
+
+    fix: corrigir Dockerfile para funcionar sem apt-get
+
+ chatwoot/Dockerfile    |  28 ++++++---
+ chatwoot/entrypoint.sh | 156 ++++++++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 160 insertions(+), 24 deletions(-)
+
+commit 776b4ac93442eda1c5a6e155a2bd162b5a965caf
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Mon Dec 15 07:20:54 2025 -0300
+
+    fix: changes in chatwoot
+
+ chatwoot/Dockerfile          |  18 +++-
+ chatwoot/VALIDACAO_DEPLOY.md | 233 +++++++++++++++++++++++++++++++++++++++++++
+ chatwoot/entrypoint.sh       | 161 ++++++++++++++++++++++++++----
+ chatwoot/railway.toml        |   5 +
+ 4 files changed, 391 insertions(+), 26 deletions(-)
+
+commit caf077f9eab931c04b2671b49884053abca6a5f2
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Sun Dec 7 20:13:41 2025 -0300
+
+    fix chatwoot for deploy
+
+ RAILWAY_CHATWOOT_SETUP.md |  7 +++++++
+ RAILWAY_SETUP.md          | 20 ++++++++++++++++++++
+ chatwoot/Dockerfile       |  8 ++++++--
+ chatwoot/entrypoint.sh    | 39 +++++++++++++++++++++++++++++++++++++++
+ chatwoot/railway.toml     |  3 ++-
+ 5 files changed, 74 insertions(+), 3 deletions(-)
+
+commit b0421ca126b3ca53cfd2a9912adc1346af438483
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Sun Dec 7 19:47:46 2025 -0300
+
+    feat: chatwoot service configurations
+
+ RAILWAY_CHATWOOT_SETUP.md | 130 ++++++++++++++++++++++
+ RAILWAY_SETUP.md          | 275 +++++++++++++++++++++++++++++++++++++++++++---
+ chatwoot/.dockerignore    |   8 ++
+ chatwoot/Dockerfile       |  18 +++
+ chatwoot/railway.toml     |  10 ++
+ 5 files changed, 426 insertions(+), 15 deletions(-)
+
+commit 5272fe3e06c1d9da865100b15927c8b0786e3596
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Sun Dec 7 18:56:17 2025 -0300
+
+    fix change order commands docker
+
+ frontend/Dockerfile | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+commit 77f24f2281f584f329e236c1de4c4e0700746bb2
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Sun Dec 7 18:44:48 2025 -0300
+
+    fix docker front url
+
+ frontend/Dockerfile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 390c5339ccf93d0526b69c5addd42bbe31f77357
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Sun Dec 7 18:43:15 2025 -0300
+
+    fix dockerfile frontend
+
+ docker-compose.yml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 55041717f37c4d36419154a415018c54d84ba9a5
+Author: Alex Muniz <amalexmuniz@gmail.com>
+Date:   Sun Dec 7 12:52:38 2025 -0300
+
+    docker improvements
+
+ .gitignore                                         |  37 +++
+ .railwayignore                                     |  21 ++
+ DOCKER_SETUP.md                                    | 190 ++++++++++++++
+ RAILWAY_QUICK_START.md                             |  73 ++++++
+ RAILWAY_SETUP.md                                   | 272 +++++++++++++++++++++
+ README.md                                          |  29 ++-
+ backend/Dockerfile                                 |  67 ++++-
+ backend/Dockerfile.dev                             |  22 ++
+ .../20251206212804_init_railway/migration.sql      |  43 ++++
+ backend/prisma/schema.prisma                       |  66 +++--
+ backend/railway.toml                               |  10 +
+ backend/src/index.ts                               |  28 ++-
+ backend/src/routes/auth.ts                         |  17 +-
+ backend/src/routes/bot.ts                          |   4 +-
+ backend/src/routes/conversations.ts                |   2 +-
+ backend/src/routes/whatsapp-numbers.ts             |   5 +-
+ backend/src/services/bot.service.ts                |   4 +-
+ backend/src/services/chatwoot.service.ts           |   8 +-
+ docker-compose.yml                                 |  12 +-
+ frontend/Dockerfile                                |  50 +++-
+ frontend/Dockerfile.dev                            |  24 ++
+ frontend/app/conversations/[id]/page.tsx           |   4 +-
+ frontend/next.config.js                            |   5 +
+ frontend/railway.toml                              |  10 +
+ railway.toml                                       |  10 +
+ 25 files changed, 925 insertions(+), 88 deletions(-)
+
+commit df8f75eea00a553a34fbb13b3cf1c28a354c77ea
+Author: Alekmz <amalexmuniz@gmail.com>
+Date:   Sat Dec 6 17:23:57 2025 -0300
+
+    initial implements
+
+ API.md                                             |  177 +
+ CHANGELOG.md                                       |   34 +
+ CHATWOOT_SETUP.md                                  |  159 +
+ CHATWOOT_TOKEN_ALTERNATIVES.md                     |  108 +
+ PROJECT_STRUCTURE.md                               |  125 +
+ QUICK_CHATWOOT_SETUP.md                            |  159 +
+ QUICK_START.md                                     |  114 +
+ README.md                                          |  163 +-
+ URA_EXPLICACAO.md                                  |  350 +
+ ZAPI_CLIENT_TOKEN_SETUP.md                         |   87 +
+ ZAPI_COMPLETE_INTEGRATION.md                       |  185 +
+ ZAPI_INTEGRATION.md                                |  179 +
+ ZAPI_WEBHOOK_SETUP.md                              |  170 +
+ annotations.md                                     |  177 +
+ backend/.dockerignore                              |    7 +
+ backend/.env.example                               |   34 +
+ backend/.gitignore                                 |    7 +
+ backend/Dockerfile                                 |   23 +
+ backend/package.json                               |   40 +
+ .../20251120214608_initial/migration.sql           |   57 +
+ .../migration.sql                                  |   19 +
+ backend/prisma/migrations/migration_lock.toml      |    3 +
+ backend/prisma/schema.prisma                       |  113 +
+ backend/prisma/seed.ts                             |  105 +
+ backend/src/config/database.ts                     |    8 +
+ backend/src/config/swagger.ts                      |   37 +
+ backend/src/index.ts                               |  133 +
+ backend/src/middleware/auth.ts                     |   72 +
+ backend/src/middleware/errorHandler.ts             |   24 +
+ backend/src/middleware/logger.ts                   |   64 +
+ backend/src/routes/auth.ts                         |  218 +
+ backend/src/routes/bot.ts                          |  396 +
+ backend/src/routes/conversations.ts                |  288 +
+ backend/src/routes/events.ts                       |   86 +
+ backend/src/routes/logs.ts                         |   88 +
+ backend/src/routes/messages.ts                     |   82 +
+ backend/src/routes/supervisor.ts                   |  133 +
+ backend/src/routes/users.ts                        |  201 +
+ backend/src/routes/webhooks.ts                     |  435 ++
+ backend/src/routes/whatsapp-numbers.ts             |  457 ++
+ backend/src/services/bot.service.ts                |  334 +
+ backend/src/services/chatwoot.service.ts           | 1127 +++
+ backend/src/services/events.service.ts             |  117 +
+ backend/src/services/meta-whatsapp.service.ts      |  154 +
+ backend/src/services/zapi.service.ts               |  477 ++
+ backend/tsconfig.json                              |   21 +
+ docker-compose.yml                                 |  162 +
+ docker/init-chatwoot-db.sh                         |   20 +
+ docker/init-chatwoot-db.sql                        |    9 +
+ docker/init-chatwoot.sh                            |   25 +
+ frontend/.dockerignore                             |    7 +
+ frontend/.env.example                              |    1 +
+ frontend/.gitignore                                |   37 +
+ frontend/Dockerfile                                |   19 +
+ frontend/app/bot-flows/page.tsx                    |  442 ++
+ frontend/app/conversations/[id]/page.tsx           |  547 ++
+ frontend/app/dashboard/page.tsx                    |  301 +
+ frontend/app/globals.css                           |   26 +
+ frontend/app/layout.tsx                            |   27 +
+ frontend/app/login/page.tsx                        |   91 +
+ frontend/app/logs/page.tsx                         |  102 +
+ frontend/app/page.tsx                              |   14 +
+ frontend/app/supervisor/page.tsx                   |  372 +
+ frontend/app/users/page.tsx                        |  208 +
+ frontend/app/whatsapp-numbers/page.tsx             |  512 ++
+ frontend/components/Layout.tsx                     |   49 +
+ frontend/components/Sidebar.tsx                    |   61 +
+ frontend/lib/api.ts                                |  233 +
+ frontend/lib/auth.ts                               |   49 +
+ frontend/middleware.ts                             |   37 +
+ frontend/next.config.js                            |   10 +
+ frontend/package.json                              |   33 +
+ frontend/postcss.config.js                         |    7 +
+ frontend/tailwind.config.js                        |   40 +
+ frontend/tsconfig.json                             |   28 +
+ package-lock.json                                  | 7816 ++++++++++++++++++++
+ package.json                                       |   25 +
+ scripts/get-chatwoot-token.sh                      |   73 +
+ setup.sh                                           |   67 +
+ 79 files changed, 18996 insertions(+), 1 deletion(-)
+
+commit 9849b2ef2782c18fdb37f05ac1f28eaa04fd3a40
+Author: Alex Muniz <62714545+Alekmz@users.noreply.github.com>
+Date:   Sat Dec 6 10:07:34 2025 -0300
+
+    Initial commit
+
+ README.md | 1 +
+ 1 file changed, 1 insertion(+)
