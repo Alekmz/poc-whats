@@ -21,6 +21,7 @@ env:
 jobs:
   deploy:
     name: Deploy Backend
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment: poc-whats
 
