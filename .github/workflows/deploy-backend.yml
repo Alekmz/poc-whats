@@ -22,6 +22,7 @@ jobs:
   deploy:
     name: Deploy Backend
     runs-on: ubuntu-latest
+    environment: poc-whats
 
     steps:
       - name: Checkout code
