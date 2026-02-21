@@ -38,11 +38,7 @@ jobs:
       - name: Install Railway CLI
         run: npm i -g @railway/cli
 
-      - name: Login to Railway
-        run: railway login --token ${{ secrets.RAILWAY_TOKEN }}
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
+      # RAILWAY_TOKEN must be an Account token (Account → Tokens), not a Project token; link requires account-level access
       - name: Link Railway project (no repo root)
         run: railway link --project "$RAILWAY_PROJECT_ID"
 
