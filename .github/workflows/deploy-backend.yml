@@ -23,7 +23,7 @@ jobs:
     name: Deploy Backend
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    environment: "poc-whats (insightful-playfulness / production)"
+    environment: "poc-whats"
 
     steps:
       - name: Checkout code
