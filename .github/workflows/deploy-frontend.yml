@@ -19,13 +19,12 @@ on:
 env:
   RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
   RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_FRONTEND_SERVICE_ID }}
-  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
 jobs:
   deploy:
     name: Deploy Frontend
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,14 +39,15 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      # RAILWAY_TOKEN is read from env automatically; use Account token (Account → Tokens) for railway link
       - name: Link to Railway Project
-        run: railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: railway link --project "$RAILWAY_PROJECT_ID"
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
 
       - name: Deploy to Railway
         run: |
           cd frontend
-          railway up --service ${{ secrets.RAILWAY_FRONTEND_SERVICE_ID }} --detach
+          railway up --service "$RAILWAY_SERVICE_ID" --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
